@@ -1,14 +1,25 @@
 import React from "react"
 
-function Guess({ guess }) {
-  console.log(guess)
+import { range } from "../../utils"
+import { checkGuess } from "../../game-helpers"
+
+function Guess({ value, answer }) {
+  const letterStatusArr = checkGuess(value, answer)
+
   return (
     <p className="guess">
-      <span className="cell">{guess[0]}</span>
-      <span className="cell">{guess[1]}</span>
-      <span className="cell">{guess[2]}</span>
-      <span className="cell">{guess[3]}</span>
-      <span className="cell">{guess[4]}</span>
+      {range(5).map((num) => {
+        return (
+          <span
+            key={num}
+            className={`cell ${
+              letterStatusArr ? letterStatusArr[num].status : undefined
+            }`}
+          >
+            {value?.[num]}
+          </span>
+        )
+      })}
     </p>
   )
 }

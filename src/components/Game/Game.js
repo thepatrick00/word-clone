@@ -1,10 +1,12 @@
 import React from "react"
 import Input from "../Input"
-import Guess from "../Guess"
-
-import { sample, range } from "../../utils"
-import { WORDS } from "../../data"
+import GuessResults from "../GuessResults"
+import WonBanner from "../WonBanner"
+import LostBanner from "../LostBanner"
 import { NUM_OF_GUESSES_ALLOWED } from "../../constants"
+
+import { sample } from "../../utils"
+import { WORDS } from "../../data"
 
 // Pick a random word on every pageload.
 const answer = sample(WORDS)
@@ -12,40 +14,33 @@ const answer = sample(WORDS)
 console.info({ answer })
 
 function Game() {
-  const [inputText, setInputText] = React.useState("")
   const [guesses, setGuesses] = React.useState([])
+  // running, won, lost statuses
+  const [status, setStatus] = React.useState("running")
 
-  function handleChange(e) {
-    setInputText(e.target.value.toUpperCase())
+  function handleSubmitGuess(tentativeGuess) {
+    const nextGuess = {
+      value: tentativeGuess,
+      id: Math.random(),
+    }
+    const nextGuesses = [...guesses, nextGuess]
+    setGuesses(nextGuesses)
+
+    if (tentativeGuess.toUpperCase() === answer) {
+      setStatus("won")
+    } else if (nextGuesses.length >= NUM_OF_GUESSES_ALLOWED) {
+      setStatus("lost")
+    }
   }
-
-  function handleSubmit(e) {
-    e.preventDefault()
-    console.log(inputText)
-    setInputText("")
-
-    setGuesses([...guesses, { text: inputText, id: crypto.randomUUID() }])
-  }
-  // range( start, end, step)
-  const rows = range(0, NUM_OF_GUESSES_ALLOWED, 1)
   return (
     <>
       <div className="guess-results">
-        {rows.map((row, i) => {
-          // nullish coalesing used b/c if index does not exist yet
-          // then undefined, and undefined.text is error
-          // also white space characters are truthy
-          return <Guess guess={guesses[i]?.text || "     "} key={i} />
-        })}
-        {/* {guesses.map((guess) => (
-          <Guess guess={guess.text} key={guess.id} />
-        ))} */}
+        <GuessResults guesses={guesses} answer={answer} />
       </div>
-      <Input
-        inputText={inputText}
-        handleChange={handleChange}
-        handleSubmit={handleSubmit}
-      />
+      <Input handleSubmitGuess={handleSubmitGuess} status={status} />
+
+      {status === "won" && <WonBanner guessesLength={guesses.length} />}
+      {status === "lost" && <LostBanner answer={answer} />}
     </>
   )
 }
